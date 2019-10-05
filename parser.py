@@ -13,7 +13,9 @@ headers = {
 'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36'
 }
 
+
 def get_review_data(url):
+    '''Функция, собирающая данные с отзыва.'''
     req = requests.get(url, headers=headers)
     soup = BeautifulSoup(req.content, 'html.parser')
 
@@ -28,7 +30,8 @@ def get_review_data(url):
     plus = soup.find('div', class_='review-plus').text.replace('"', '""')
     minus = soup.find('div', class_='review-minus').text.replace('"', '""')
     text_mod = 'Плюсы: {} Минусы: {} Комментарий: {}'.format(plus, minus, text)
-    # Добавляем кавычки для строк, в которых могут содержаться запятые
+
+    # Добавляем кавычки для строк, в которых могут содержаться запятые для корректного создания csv файла
     return (', ').join((bookmaker, '"'+text_mod+' "', date, rating, review_source, user_name, '" '+plus+' "', '" '+minus+' "' ))
 
 
@@ -38,6 +41,7 @@ soup = BeautifulSoup(req.content, 'html.parser')
 
 all_links = [] #Линки на отзывы
 
+#Сбор ссылок на все страницы
 while True:
     links = [i['href'] for i in soup.find_all('a', class_='review-title')] #Собираем ссылки на отзывы на этой странице
     all_links.extend(links)
@@ -48,14 +52,8 @@ while True:
         soup = BeautifulSoup(req.content, 'html.parser')
     else:
         break
-'''
-print(all_links)
-for link in all_links:
 
-    sleep(1)
-    print(get_review_data(link) + '\n')
-
-'''
+#Запись в csv файл
 with open('result.csv', 'w') as f:
     for link in all_links:
 
